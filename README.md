@@ -3,7 +3,7 @@
 A tool that automatically turns raw potentiostat csv's into detailed reports.
 
 Takes a folder of CHI Instruments csv files, parses them, runs the
-electrochemical math the protocol calls for (Randles-Ševčík, C_dl, Laviron,
+electrochemical math the protocol calls for (Randles-Sevcik, C_dl, Laviron,
 Nicholson), does replicate averaging, writes a clean report of the results,
 and flags unusual results.
 
@@ -16,12 +16,11 @@ following the Ye et al. (2024) protocol.
 Characterizing a fabricated electrode means running the same analysis
 pipeline across many cyclic voltammetry csv files, involving multiple scan
 rates for multiple electrodes and multiple electrolytes. Previously, this
-was done by hand in Excel, which was tedious and liable to human error. This
-tool automates the pipeline. Randles-Ševčík is used for diffusion-controlled
+was done by hand in Excel, which was tedious and prone to human error. This
+tool automates the pipeline. Randles-Sevcik is used for diffusion-controlled
 redox (ferro/ferricyanide), C_dl is used for capacitive charging current
 (PBS/sweat), and Laviron or Nicholson is used for electron transfer
-kinetics, chosen by a fixed threshold on peak separation (see below) — not
-by a language model.
+kinetics, chosen by a fixed threshold on peak separation (below).
 
 
 ## Installation
@@ -49,7 +48,7 @@ per-electrode QC reports.
 
 `ANTHROPIC_API_KEY` is optional. Every number and every method choice in
 this pipeline is computed deterministically whether or not it's set. If it
-is set, Claude is used only to write the plain-language summary paragraphs
+is set, Claude is used only to write the summary paragraphs
 (per-electrode `interpret()` and the batch `compare()` overview) in nicer
 prose over numbers that were already computed in code. Without a key, those
 same summaries are still written, just from a simpler rule-based template.
@@ -115,7 +114,7 @@ a number:
 ## How experiments are identified
 
 Electrolyte (and therefore which analysis applies) is read from the CHI
-file's own header — specifically the potential window it swept:
+file's own header, specifically the potential window it swept:
 
 - **-0.2 V to +0.6 V** (a wide redox window) → ferro/ferricyanide
 - **+0.5 V to +0.6/0.7 V** (a narrow window) → PBS / Cdl
@@ -136,7 +135,7 @@ cv_sp1_ab2_5mvs_051226_0206_ff.csv,ab2,1,batchA,ferro_ferri
 
 Every column except `filename` is optional; only the ones you provide
 override the filename/header guess. A file that isn't in the manifest and
-doesn't match the filename convention still parses fine — its electrode id
+doesn't match the filename convention still parses fine, and its electrode id
 just falls back to the filename's stem and its electrolyte comes from the
 header.
 
@@ -146,13 +145,13 @@ The protocol's actual unit of analysis is a **set of replicate electrodes**,
 not one electrode: run 3 (or more) electrodes, average their peak currents
 and peak separations at each scan rate, and fit the averaged data. By
 default, electrodes are grouped by stripping the trailing digits off the
-electrode id — `ab2`, `ab3`, `ab4` all fall into group `"ab"`. Use
+electrode id. `ab2`, `ab3`, `ab4` all fall into group `"ab"`. Use
 `replicate_group` in the manifest to set this explicitly if your naming
 doesn't follow that pattern.
 
 Per-electrode reports (`<electrode_id>_report.html`) are still written for
-every electrode as a QC view — raw traces, the per-scan-rate peak table,
-and an individual Randles-Sevcik/Cdl fit — but kinetics (Laviron/Nicholson)
+every electrode as a QC view. Raw traces, the per-scan-rate peak table,
+and an individual Randles-Sevcik/Cdl fit, but kinetics (Laviron/Nicholson)
 and the EASA you should actually report run on the replicate-averaged data,
 in `group_<group_id>_report.html`.
 
@@ -170,8 +169,8 @@ as a pre-fill; the CHI header's potential window always wins if the two
 disagree
 `_ff`, optional, another filename-level hint, same caveat as above
 
-If a filename doesn't match this pattern, it no longer breaks anything —
-the tool falls back to the header for electrolyte/scan rate and to the
+If a filename doesn't match this pattern, it no longer breaks anything.
+The tool falls back to the header for electrolyte/scan rate and to the
 filename's stem for the electrode id, and a manifest entry can fill in
 anything still missing.
 
